@@ -1,3 +1,17 @@
+# StyleGAN 2 from PyTorch to PaddlePaddle
+
+Run convert script:
+
+```bash
+python convert_weight_torch2pp.py stylegan2-ffhq-config-f.pt
+```
+
+Test converted model:
+
+```bash
+python generate_pp.py --size 1024 --ckpt stylegan2-ffhq-config-f.g_ema
+```
+
 # StyleGAN 2 in PyTorch
 
 Implementation of Analyzing and Improving the Image Quality of StyleGAN (https://arxiv.org/abs/1912.04958) in PyTorch
