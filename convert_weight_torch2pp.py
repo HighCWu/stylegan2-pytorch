@@ -36,7 +36,7 @@ if __name__ == "__main__":
     device = "cuda"
 
     parser = argparse.ArgumentParser(
-        description="Tensorflow to pytorch model checkpoint converter"
+        description="PyTorch to paddle model checkpoint converter"
     )
     parser.add_argument(
         "--channel_multiplier",
