@@ -1,0 +1,4 @@
+[submodule "stylegan2_tf_repo"]
+	path = stylegan2_tf_repo
+	url = https://github.com/HighCWu/stylegan2
+	branch = tadne

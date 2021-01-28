@@ -206,7 +206,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--repo",
         type=str,
-        required=True,
+        default='./stylegan2_tf_repo',
         help="path to the offical StyleGAN2 repository with dnnlib/ folder",
     )
     parser.add_argument(
