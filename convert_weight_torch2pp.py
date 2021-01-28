@@ -47,7 +47,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--size",
         type=int,
-        default=1024,
+        default=512,
         help="output image size of the generator"
     )
     parser.add_argument("path", metavar="PATH", help="path to the pytorch weights")
