@@ -66,11 +66,11 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    latent_dim = 512
+    latent_dim = 1024
 
     ckpt = torch.load(args.ckpt)
 
-    g = Generator(args.size, latent_dim, 8).to(device)
+    g = Generator(args.size, latent_dim, 4).to(device)
     g.load_state_dict(ckpt["g_ema"])
     g.eval()
 

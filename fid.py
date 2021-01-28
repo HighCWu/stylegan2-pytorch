@@ -21,7 +21,7 @@ def extract_feature_from_samples(
     features = []
 
     for batch in tqdm(batch_sizes):
-        latent = torch.randn(batch, 512, device=device)
+        latent = torch.randn(batch, 1024, device=device)
         img, _ = g([latent], truncation=truncation, truncation_latent=truncation_latent)
         feat = inception(img)[0].view(img.shape[0], -1)
         features.append(feat.to("cpu"))
@@ -96,7 +96,7 @@ if __name__ == "__main__":
 
     ckpt = torch.load(args.ckpt)
 
-    g = Generator(args.size, 512, 8).to(device)
+    g = Generator(args.size, 1024, 4).to(device)
     g.load_state_dict(ckpt["g_ema"])
     g = nn.DataParallel(g)
     g.eval()

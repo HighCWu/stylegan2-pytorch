@@ -63,8 +63,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    args.latent = 512
-    args.n_mlp = 8
+    args.latent = 1024
+    args.n_mlp = 4
 
     g_ema = Generator(
         args.size, args.latent, args.n_mlp, channel_multiplier=args.channel_multiplier

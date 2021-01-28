@@ -56,12 +56,12 @@ if __name__ == "__main__":
 
     eigvec = torch.load(args.factor)["eigvec"].to(args.device)
     ckpt = torch.load(args.ckpt)
-    g = Generator(args.size, 512, 8, channel_multiplier=args.channel_multiplier).to(args.device)
+    g = Generator(args.size, 1024, 4, channel_multiplier=args.channel_multiplier).to(args.device)
     g.load_state_dict(ckpt["g_ema"], strict=False)
 
     trunc = g.mean_latent(4096)
 
-    latent = torch.randn(args.n_sample, 512, device=args.device)
+    latent = torch.randn(args.n_sample, 1024, device=args.device)
     latent = g.get_latent(latent)
 
     direction = args.degree * eigvec[:, args.index].unsqueeze(0)

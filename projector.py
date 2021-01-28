@@ -146,13 +146,13 @@ if __name__ == "__main__":
 
     imgs = torch.stack(imgs, 0).to(device)
 
-    g_ema = Generator(args.size, 512, 8)
+    g_ema = Generator(args.size, 1024, 4)
     g_ema.load_state_dict(torch.load(args.ckpt)["g_ema"], strict=False)
     g_ema.eval()
     g_ema = g_ema.to(device)
 
     with torch.no_grad():
-        noise_sample = torch.randn(n_mean_latent, 512, device=device)
+        noise_sample = torch.randn(n_mean_latent, 1024, device=device)
         latent_out = g_ema.style(noise_sample)
 
         latent_mean = latent_out.mean(0)

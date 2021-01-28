@@ -60,9 +60,9 @@ if __name__ == "__main__":
     name = os.path.splitext(os.path.basename(args.path))[0]
 
     state_dict = torch_state_dicts['g_ema']
-    g = g_ema = Generator(size, 512, 8, channel_multiplier=args.channel_multiplier)
+    g = g_ema = Generator(size, 1024, 4, channel_multiplier=args.channel_multiplier)
     g.load_state_dict(state_dict)
-    g_pp = g_ema_pp = G_pp(size, 512, 8, channel_multiplier=args.channel_multiplier)
+    g_pp = g_ema_pp = G_pp(size, 1024, 4, channel_multiplier=args.channel_multiplier)
     torch2pp(g, g_pp)
     paddle.save(g_pp.state_dict(), name + '.g_ema')
         
@@ -74,9 +74,9 @@ if __name__ == "__main__":
         
     if 'g' in torch_state_dicts:
         state_dict = torch_state_dicts['g']
-        g = Generator(size, 512, 8, channel_multiplier=args.channel_multiplier)
+        g = Generator(size, 1024, 4, channel_multiplier=args.channel_multiplier)
         g.load_state_dict(state_dict)
-        g_pp = G_pp(size, 512, 8, channel_multiplier=args.channel_multiplier)
+        g_pp = G_pp(size, 1024, 4, channel_multiplier=args.channel_multiplier)
         torch2pp(g, g_pp)
         paddle.save(g_pp.state_dict(), name + '.g')
 
@@ -88,12 +88,12 @@ if __name__ == "__main__":
         torch2pp(d, d_pp)
         paddle.save(d_pp.state_dict(), name + '.d')
 
-    batch_size = {256: 16, 512: 9, 1024: 4}
+    batch_size = {256: 8, 512: 4, 1024: 1}
     n_sample = batch_size.get(size, 25)
 
     g = g_ema.to(device)
 
-    z = np.random.RandomState(0).randn(n_sample, 512).astype("float32")
+    z = np.random.RandomState(0).randn(n_sample, 1024).astype("float32")
 
     with torch.no_grad():
         img_pt, _ = g(

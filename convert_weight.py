@@ -237,7 +237,7 @@ if __name__ == "__main__":
 
     size = g_ema.output_shape[2]
 
-    g = Generator(size, 512, 8, channel_multiplier=args.channel_multiplier)
+    g = Generator(size, 1024, 4, channel_multiplier=args.channel_multiplier)
     state_dict = g.state_dict()
     state_dict = fill_statedict(state_dict, g_ema.vars, size)
 
@@ -248,7 +248,7 @@ if __name__ == "__main__":
     ckpt = {"g_ema": state_dict, "latent_avg": latent_avg}
 
     if args.gen:
-        g_train = Generator(size, 512, 8, channel_multiplier=args.channel_multiplier)
+        g_train = Generator(size, 1024, 4, channel_multiplier=args.channel_multiplier)
         g_train_state = g_train.state_dict()
         g_train_state = fill_statedict(g_train_state, generator.vars, size)
         ckpt["g"] = g_train_state
@@ -262,12 +262,12 @@ if __name__ == "__main__":
     name = os.path.splitext(os.path.basename(args.path))[0]
     torch.save(ckpt, name + ".pt")
 
-    batch_size = {256: 16, 512: 9, 1024: 4}
+    batch_size = {256: 8, 512: 4, 1024: 1}
     n_sample = batch_size.get(size, 25)
 
     g = g.to(device)
 
-    z = np.random.RandomState(0).randn(n_sample, 512).astype("float32")
+    z = np.random.RandomState(0).randn(n_sample, 1024).astype("float32")
 
     with torch.no_grad():
         img_pt, _ = g(

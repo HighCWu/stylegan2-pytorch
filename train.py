@@ -444,8 +444,8 @@ if __name__ == "__main__":
         torch.distributed.init_process_group(backend="nccl", init_method="env://")
         synchronize()
 
-    args.latent = 512
-    args.n_mlp = 8
+    args.latent = 1024
+    args.n_mlp = 4
 
     args.start_iter = 0
 
