@@ -32,7 +32,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate samples from the generator")
 
     parser.add_argument(
-        "--size", type=int, default=1024, help="output image size of the generator"
+        "--size", type=int, default=512, help="output image size of the generator"
     )
     parser.add_argument(
         "--sample",
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--ckpt",
         type=str,
-        default="stylegan2-ffhq-config-f.pt",
+        default="network-tadne.pt",
         help="path to the model checkpoint",
     )
     parser.add_argument(
