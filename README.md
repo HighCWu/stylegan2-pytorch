@@ -1,6 +1,6 @@
 # This Anime Doesn't Exist (PyTorch version and PaddlePaddle version)
 
-### Convert weight from adyao's tf checkpoints to pytorch
+### Convert weight from aydao's tf checkpoints to pytorch
 
 First, you need to clone this repository:
 
