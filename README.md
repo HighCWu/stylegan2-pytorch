@@ -1,16 +1,44 @@
-# StyleGAN 2 from PyTorch to PaddlePaddle
+# This Anime Doesn't Exist (PyTorch version and PaddlePaddle version)
+
+### Convert weight from adyao's tf checkpoints to pytorch
+
+First, you need to clone this repository:
+
+> git clone https://github.com/HighCWu/stylegan2-pytorch2paddle -b tadne --recursive
+
+Download pretrained weight:
+
+- [Mega ](https://mega.nz/file/nUkWFZgS#EHHrqILumjpTppSXG-QlCOdWaUIVLTDnqPxsXPrI3UQ)(1GB)
+- [Google Drive](https://drive.google.com/file/d/1qNhyusI0hwBLI-HOavkNP5I0J0-kcN4C/view) [(backup)](https://drive.google.com/file/d/1A-E_E32WAtTHRlOzjhhYhyyBDXLJN9_H/view)
+- Rsync mirror: `rsync -v rsync://78.46.86.149:873/biggan/2020-11-27-aydao-stylegan2ext-danbooru2019s-512px-5268480.pkl ./network-tadne.pkl`
+
+Then you can convert it like this:
+
+> python convert_weight.py network-tadne.pkl
+
+This will create converted network-tadne.pt file.
+
+Converting script is available on [Colab](https://colab.research.google.com/github/HighCWu/stylegan2-pytorch2paddle/blob/tadne/convert_weight.ipynb).
+
+### Convert weight from pytorch to paddlepaddle
 
 Run convert script:
 
 ```bash
-python convert_weight_torch2pp.py stylegan2-ffhq-config-f.pt
+python convert_weight_torch2pp.py network-tadne.pt
 ```
 
 Test converted model:
 
 ```bash
-python generate_pp.py --size 1024 --ckpt stylegan2-ffhq-config-f.g_ema
+python generate_pp.py --size 512 --ckpt network-tadne.g_ema
 ```
+
+Converting script is available on [Colab](https://colab.research.google.com/github/HighCWu/stylegan2-pytorch2paddle/blob/tadne/convert_weight_torch2pp.ipynb).
+
+...
+
+The following is the description of the original repo:
 
 # StyleGAN 2 in PyTorch
 
