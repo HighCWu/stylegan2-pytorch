@@ -2,6 +2,8 @@
 
 ### Convert weight from aydao's tf checkpoints to pytorch
 
+You could find the converted file [here](https://drive.google.com/file/d/1MnBuwQzljoFqdQBGFcg-EmT2h73dTQPR/view?usp=sharing). Or you could convert it by yourself.
+
 First, you need to clone this repository:
 
 > git clone https://github.com/HighCWu/stylegan2-pytorch2paddle -b tadne --recursive
@@ -16,11 +18,13 @@ Then you can convert it like this:
 
 > python convert_weight.py network-tadne.pkl
 
-This will create converted network-tadne.pt file.
+This will create converted network-tadne.pt file. 
 
 Converting script is available on [Colab](https://colab.research.google.com/github/HighCWu/stylegan2-pytorch2paddle/blob/tadne/convert_weight.ipynb).
 
 ### Convert weight from pytorch to paddlepaddle
+
+You could find the converted file [here](https://drive.google.com/file/d/1gYtYNdERVwJqqX1ujoCfvEty3pDf5w1u/view?usp=sharing). Or you could convert it by yourself.
 
 Run convert script:
 
