@@ -807,6 +807,8 @@ class UnetEncoder(nn.Module):
     ):
         super().__init__()
 
+        channel_multipliers = [ch_mul for ch_mul in channel_multipliers]
+        
         _size = size
         
         self.first_conv = ConvLayer(in_channel, channel*channel_multipliers[0], 1)
