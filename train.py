@@ -123,7 +123,7 @@ def set_grad_none(model, targets):
             p.grad = None
 
 
-def train(args, loader, generator, discriminator, g_optim, d_optim, g_ema, device):
+def train(args, loader, generator, discriminator, p_optim, g_optim, d_optim, g_ema, device):
     loader = sample_data(loader)
 
     pbar = range(args.iter)
@@ -166,8 +166,23 @@ def train(args, loader, generator, discriminator, g_optim, d_optim, g_ema, devic
 
             break
 
-        real_img = next(loader)
-        real_img = real_img.to(device)
+        source_img, guide_img = next(loader)
+        source_img = source_img.to(device)
+        guide_img = guide_img.to(device)
+
+        real_img = torch.cat([source_img, guide_img], 1).detach()
+
+        requires_grad(generator, True)
+        requires_grad(discriminator, False)
+
+        noise = mixing_noise(1, args.latent, args.mixing, device)
+        fake_img, _ = generator(noise, guide_img[:1])
+        p_loss = F.mse_loss(fake_img[:,3:], guide_img[:1])
+        loss_dict["p"] = p_loss
+
+        generator.zero_grad()
+        p_loss.backward()
+        p_optim.step()
 
         requires_grad(generator, False)
         requires_grad(discriminator, True)
@@ -269,6 +284,7 @@ def train(args, loader, generator, discriminator, g_optim, d_optim, g_ema, devic
 
         loss_reduced = reduce_loss_dict(loss_dict)
 
+        p_loss_val = loss_reduced["p"].mean().item()
         d_loss_val = loss_reduced["d"].mean().item()
         g_loss_val = loss_reduced["g"].mean().item()
         r1_val = loss_reduced["r1"].mean().item()
@@ -280,6 +296,7 @@ def train(args, loader, generator, discriminator, g_optim, d_optim, g_ema, devic
         if get_rank() == 0:
             pbar.set_description(
                 (
+                    f"p: {p_loss_val:.4f}; "
                     f"d: {d_loss_val:.4f}; g: {g_loss_val:.4f}; r1: {r1_val:.4f}; "
                     f"path: {path_loss_val:.4f}; mean path: {mean_path_length_avg:.4f}; "
                     f"augment: {ada_aug_p:.4f}"
@@ -289,6 +306,7 @@ def train(args, loader, generator, discriminator, g_optim, d_optim, g_ema, devic
             if wandb and args.wandb:
                 wandb.log(
                     {
+                        "Reconstruction": p_loss_val,
                         "Generator": g_loss_val,
                         "Discriminator": d_loss_val,
                         "Augment": ada_aug_p,
@@ -305,14 +323,19 @@ def train(args, loader, generator, discriminator, g_optim, d_optim, g_ema, devic
             if i % 100 == 0:
                 with torch.no_grad():
                     g_ema.eval()
-                    sample, _ = g_ema([sample_z])
-                    utils.save_image(
-                        sample,
-                        f"sample/{str(i).zfill(6)}.png",
-                        nrow=int(args.n_sample ** 0.5),
-                        normalize=True,
-                        range=(-1, 1),
-                    )
+                    for j in range(len(guide_img[:4])):
+                        guide = guide_img[j:j+1]
+                        sample, _ = g_ema([sample_z], guide)
+                        if guide.shape[1] == 1:
+                            guide = guide.repeat(1,3,1,1).clamp(-1,1)
+                        sample = torch.cat([guide, sample[:,:3]], 0)
+                        utils.save_image(
+                            sample,
+                            f"sample/{str(i).zfill(6)}.{j}.png",
+                            nrow=1,
+                            normalize=True,
+                            range=(-1, 1),
+                        )
 
             if i % 10000 == 0:
                 torch.save(
@@ -320,6 +343,7 @@ def train(args, loader, generator, discriminator, g_optim, d_optim, g_ema, devic
                         "g": g_module.state_dict(),
                         "d": d_module.state_dict(),
                         "g_ema": g_ema.state_dict(),
+                        "p_optim": p_optim.state_dict(),
                         "g_optim": g_optim.state_dict(),
                         "d_optim": d_optim.state_dict(),
                         "args": args,
@@ -345,7 +369,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--n_sample",
         type=int,
-        default=64,
+        default=5,
         help="number of the samples generated during training",
     )
     parser.add_argument(
@@ -464,6 +488,10 @@ if __name__ == "__main__":
     g_reg_ratio = args.g_reg_every / (args.g_reg_every + 1)
     d_reg_ratio = args.d_reg_every / (args.d_reg_every + 1)
 
+    p_optim = optim.Adam(
+        generator.parameters(),
+        lr=args.lr / args.batch,
+    )
     g_optim = optim.Adam(
         generator.parameters(),
         lr=args.lr * g_reg_ratio,
@@ -491,6 +519,7 @@ if __name__ == "__main__":
         discriminator.load_state_dict(ckpt["d"])
         g_ema.load_state_dict(ckpt["g_ema"])
 
+        p_optim.load_state_dict(ckpt["p_optim"])
         g_optim.load_state_dict(ckpt["g_optim"])
         d_optim.load_state_dict(ckpt["d_optim"])
 
@@ -528,4 +557,4 @@ if __name__ == "__main__":
     if get_rank() == 0 and wandb is not None and args.wandb:
         wandb.init(project="stylegan 2")
 
-    train(args, loader, generator, discriminator, g_optim, d_optim, g_ema, device)
+    train(args, loader, generator, discriminator, p_optim, g_optim, d_optim, g_ema, device)
