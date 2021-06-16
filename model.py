@@ -705,7 +705,7 @@ class Discriminator(nn.Module):
         for i in range(log_size, 2, -1):
             out_channel = channels[2 ** (i - 1)]
 
-            convs.append(ResBlock(in_channel, out_channel, blur_kernel))
+            convs.append(ResBlock(in_channel, out_channel, blur_kernel, downsample=True))
 
             in_channel = out_channel
 
@@ -806,7 +806,7 @@ class UnetEncoder(nn.Module):
         attn_resolutions=[16]
     ):
         super().__init__()
-
+        
         channel_multipliers = [ch_mul for ch_mul in channel_multipliers]
         
         _size = size

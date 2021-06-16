@@ -460,6 +460,8 @@ def random_apply_color(img, p, C=None):
 
 def augment(img, p, transform_matrix=(None, None)):
     img, G = random_apply_affine(img, p, transform_matrix[0])
-    img, C = random_apply_color(img, p, transform_matrix[1])
+    img1, img2 = img[:,:3], img[:,3:]
+    img1, C = random_apply_color(img1, p, transform_matrix[1])
+    img = torch.cat([img1, img2], 1)
 
     return img, (G, C)

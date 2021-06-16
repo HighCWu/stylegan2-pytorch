@@ -165,10 +165,12 @@ def train(args, loader, generator, discriminator, p_optim, g_optim, d_optim, g_e
             print("Done!")
 
             break
-
+            
         source_img, guide_img = next(loader)
         source_img = source_img.to(device)
         guide_img = guide_img.to(device)
+        
+        alpha = torch.tensor([1] * (args.batch//2) + [0] * (args.batch - args.batch//2)).cuda().float()[:,None,None,None]
 
         real_img = torch.cat([source_img, guide_img], 1).detach()
 
@@ -176,8 +178,8 @@ def train(args, loader, generator, discriminator, p_optim, g_optim, d_optim, g_e
         requires_grad(discriminator, False)
 
         noise = mixing_noise(1, args.latent, args.mixing, device)
-        fake_img, _ = generator(noise, guide_img[:1])
-        p_loss = F.mse_loss(fake_img[:,3:], guide_img[:1])
+        fake_img, _ = generator(noise, guide_img[:1].detach())
+        p_loss = F.mse_loss(fake_img[:,3:], guide_img[:1].detach())
         loss_dict["p"] = p_loss
 
         generator.zero_grad()
@@ -188,7 +190,8 @@ def train(args, loader, generator, discriminator, p_optim, g_optim, d_optim, g_e
         requires_grad(discriminator, True)
 
         noise = mixing_noise(args.batch, args.latent, args.mixing, device)
-        fake_img, _ = generator(noise)
+        fake_img, _ = generator(noise, guide_img.detach())
+        fake_img[:,3:] = fake_img[:,3:] * alpha + guide_img.detach() * (1 - alpha)
 
         if args.augment:
             real_img_aug, _ = augment(real_img, ada_aug_p)
@@ -238,7 +241,8 @@ def train(args, loader, generator, discriminator, p_optim, g_optim, d_optim, g_e
         requires_grad(discriminator, False)
 
         noise = mixing_noise(args.batch, args.latent, args.mixing, device)
-        fake_img, _ = generator(noise)
+        fake_img, _ = generator(noise, guide_img.detach())
+        fake_img[:,3:] = fake_img[:,3:] * alpha + guide_img.detach() * (1 - alpha)
 
         if args.augment:
             fake_img, _ = augment(fake_img, ada_aug_p)
@@ -257,7 +261,7 @@ def train(args, loader, generator, discriminator, p_optim, g_optim, d_optim, g_e
         if g_regularize:
             path_batch_size = max(1, args.batch // args.path_batch_shrink)
             noise = mixing_noise(path_batch_size, args.latent, args.mixing, device)
-            fake_img, latents = generator(noise, return_latents=True)
+            fake_img, latents = generator(noise, guide_img[:path_batch_size].detach(), return_latents=True)
 
             path_loss, mean_path_length, path_lengths = g_path_regularize(
                 fake_img, latents, mean_path_length
@@ -324,15 +328,18 @@ def train(args, loader, generator, discriminator, p_optim, g_optim, d_optim, g_e
                 with torch.no_grad():
                     g_ema.eval()
                     for j in range(len(guide_img[:4])):
-                        guide = guide_img[j:j+1]
+                        guide = guide_img[j:j+1].repeat(sample_z.shape[0],1,1,1)
                         sample, _ = g_ema([sample_z], guide)
+                        sample1 = sample[:,3:]
+                        sample2 = sample[:,:3]
                         if guide.shape[1] == 1:
                             guide = guide.repeat(1,3,1,1).clamp(-1,1)
-                        sample = torch.cat([guide, sample[:,:3]], 0)
+                            sample1 = sample1.repeat(1,3,1,1).clamp(-1,1)
+                        sample = torch.cat([guide, sample1, sample2], 0)
                         utils.save_image(
                             sample,
                             f"sample/{str(i).zfill(6)}.{j}.png",
-                            nrow=1,
+                            nrow=guide.shape[0],
                             normalize=True,
                             range=(-1, 1),
                         )
